@@ -14,19 +14,19 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Thread)
 @Fork(value = 2)
-@Warmup(iterations = 3)
-@Measurement(iterations = 3)
-public class BenchmarkLoop {
+@Warmup(iterations = 1)
+@Measurement(iterations = 2)
+public class LinkedListBench {
 
-    @Param({"20", "100", "10000000"})
+    @Param({"100", "1000000"})
     private int N;
 
     private List<String> DATA__FOR__TESTING;
-    private String[] DATA__FOR__TESTING_ARRAY;
+    private LinkedList<String> DATA__FOR__TESTING__LINK;
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include(BenchmarkLoop.class.getSimpleName())
+                .include(LinkedListBench.class.getSimpleName())
                 .forks(1)
                 .build();
         new Runner(opt).run();
@@ -70,37 +70,32 @@ public class BenchmarkLoop {
     }
 
     @Benchmark
-    public void ArrayloopStreamForEachStatic(Blackhole bh) {
-        Arrays.stream(DATA__FOR__TESTING_ARRAY).forEach(bh::consume);
+    public void loopLinkStreamForEachStatic(Blackhole bh) {
+        DATA__FOR__TESTING__LINK.stream().forEach(bh::consume);
     }
 
     @Benchmark
-    public void ArrayloopFor(Blackhole bh) {
-        for (int i = 0; i < DATA__FOR__TESTING_ARRAY.length; i++)
-            bh.consume(DATA__FOR__TESTING_ARRAY[i]);
-    }
-
-    @Benchmark
-    public void ArrayloopForInVar(Blackhole bh) {
-        final int len = DATA__FOR__TESTING_ARRAY.length;
-        for (int i = 0; i < len; i++)
-            bh.consume(DATA__FOR__TESTING_ARRAY[i]);
-    }
-
-    @Benchmark
-    public void ArrayloopForEach(Blackhole bh) {
-        for (String s : DATA__FOR__TESTING_ARRAY)
+    public void loopLinkForEach(Blackhole bh) {
+        for (String s : DATA__FOR__TESTING__LINK)
             bh.consume(s);
     }
 
+    @Benchmark
+    public void loopLinkIterator(Blackhole bh){
+        Iterator<String> a = DATA__FOR__TESTING__LINK.iterator();
+        while (a.hasNext()){
+            bh.consume(a.next());
+        }
+    }
+
     private List<String> createData() {
-        DATA__FOR__TESTING_ARRAY = new String[N];
+        DATA__FOR__TESTING__LINK = new LinkedList<>();
         List<String> data = new ArrayList<>();
         Random r = new Random();
         for (int i = 0; i < N; i++) {
             final String dd = "Number : " + r.nextInt();
             data.add(dd);
-            DATA__FOR__TESTING_ARRAY[i] = dd;
+            DATA__FOR__TESTING__LINK.add(dd);
         }
         return data;
     }
